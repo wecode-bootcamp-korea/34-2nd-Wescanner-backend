@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib    import Path
+
 from my_settings import SECRET_KEY,DATABASES
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -143,3 +144,6 @@ CORS_ALLOW_HEADERS = (
     'x-csrftoken',
     'x-requested-with',    		
 )
+
+APPEND_SLASH = False
+
