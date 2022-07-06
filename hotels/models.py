@@ -28,6 +28,8 @@ class Hotel(models.Model):
     name         = models.CharField(max_length = 100)
     rating       = models.IntegerField()
     address      = models.CharField(max_length = 200)
+    latitude     = models.DecimalField(max_digits=16, decimal_places=14, default=0.0)
+    longitude    = models.DecimalField(max_digits=17, decimal_places=14, default=0.0)
     
     class Meta:
         db_table = 'hotels'
@@ -49,7 +51,7 @@ class Site(models.Model):
         
 class HotelSite(models.Model):   
     hotel          = models.ForeignKey("Hotel",on_delete = models.CASCADE)
-    site           = models.ForeignKey("HotelSite",on_delete = models.CASCADE)
+    site           = models.ForeignKey("Site",on_delete = models.CASCADE)
     price          = models.DecimalField(max_digits = 10, decimal_places = 3)
     is_free_cancel = models.BooleanField(default = False)
     
