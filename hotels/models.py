@@ -24,7 +24,7 @@ class Conformation(models.Model):
         
 class Hotel(models.Model):   
     city         = models.ForeignKey("City",on_delete = models.CASCADE)
-    conformation = models.ForeignKey("Conformation",on_delete = models.CASCADE)
+    conformation = models.ForeignKey("Conformation",on_delete = models.CASCADE, null=True)
     name         = models.CharField(max_length = 100)
     rating       = models.IntegerField()
     address      = models.CharField(max_length = 200)
