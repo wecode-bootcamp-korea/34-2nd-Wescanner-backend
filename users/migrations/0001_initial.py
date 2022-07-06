@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('email', models.CharField(max_length=45, unique=True)),
-                ('kakao_id', models.IntegerField(unique=True)),
+                ('kakao_id', models.BigIntegerField(null=True, unique=True)),
             ],
             options={
                 'db_table': 'users',
