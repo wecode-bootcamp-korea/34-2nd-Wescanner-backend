@@ -111,4 +111,21 @@ class ReviewView(View):
         except transaction.TransactionManagementError:
             return JsonResponse({'message': 'TransactionManagementError'}, status = 400)
 
+    @login_decorator
+    def delete(self, request, review_id):
+        try:
+            user = request.user
+            review_id = Review.objects.get(id=review_id)
+
+
+            s3_controller = FileHandler(s3client)
+            s3_controller.delete(bucket_name=AWS_STORAGE_BUCKET_NAME, file_name=review_id)
+
+            Review.objects.get(id=review_id, user_id=user.id).delete()
+
+            return JsonResponse({'message': 'success'}, status=200)
+
+        except Review.DoesNotExist():
+            return JsonResponse({'message': 'DoesNotExist'}, status=400) 
+
    
