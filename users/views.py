@@ -1,16 +1,27 @@
 import json
-from os import access
 import re
 import jwt
 import requests
 
+from django.db              import transaction
 from django.http            import JsonResponse
 from django.views           import View
 from django.core.exceptions import ValidationError
 
 from wescanner.settings import SECRET_KEY,ALGORITHM
-from users.models       import User
-from core.utils         import KakaoAPI
+from users.models       import User, Review
+
+from core.utils import KakaoAPI, login_decorator
+from core.s3    import S3_Client, FileHandler
+
+from wescanner.settings  import (
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_KEY,
+    AWS_STORAGE_BUCKET_NAME,
+    AWS_REGION,
+    IMAGE_URL,
+    AWS_LOCATION
+    )
 
 class EmailLoginView(View):
     def post(self,request):
@@ -68,3 +79,36 @@ class KakaoLoginView(View):
         
         except KeyError:
             return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+
+s3client = S3_Client(AWS_ACCESS_KEY_ID, AWS_SECRET_KEY, AWS_STORAGE_BUCKET_NAME, AWS_REGION)
+
+class ReviewView(View):
+    @login_decorator
+    def post(self, request):
+        try:
+            user             = request.user
+            hotel_id         = request.POST['hotel_id']
+            rating           = request.POST['rating']
+            contents         = request.POST['content']
+            review_image     = request.FILES['review_image']
+
+            s3_controller = FileHandler(s3client)
+
+            with transaction.atomic():
+                reviews = Review.objects.create(user_id   = user.id,
+                                                hotel_id  = hotel_id,
+                                                rating    = rating,
+                                                contents  = contents,
+                                                )
+            review_image_url = s3_controller.upload(directory = AWS_LOCATION, file = review_image)
+
+            Review.objects.get(id = reviews.id).reviewimage_set.create(url = review_image_url)
+
+            return JsonResponse({'message': 'SUCCESS'}, status = 200)
+
+        except KeyError:
+            return JsonResponse({'message': 'INVALID_KEY'}, status = 400)
+        except transaction.TransactionManagementError:
+            return JsonResponse({'message': 'TransactionManagementError'}, status = 400)
+
+   

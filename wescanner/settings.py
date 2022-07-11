@@ -12,7 +12,19 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib    import Path
 
-from my_settings import SECRET_KEY,DATABASES, ALGORITHM, KAKAOAPI_KEY
+from my_settings import (
+    SECRET_KEY,
+    DATABASES,
+    ALGORITHM,
+    KAKAOAPI_KEY,
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_KEY,
+    IMAGE_URL,
+    AWS_REGION,
+    AWS_STORAGE_BUCKET_NAME,
+    AWS_LOCATION
+)
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -152,4 +164,13 @@ CORS_ALLOW_HEADERS = (
 )
 
 APPEND_SLASH = False
+
+AWS_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
+KAKAOAPI_KEY = KAKAOAPI_KEY
+
+AWS_REGION   = AWS_REGION
+IMAGE_URL    = IMAGE_URL
+AWS_SECRET_KEY = AWS_SECRET_KEY
+AWS_ACCESS_KEY_ID = AWS_ACCESS_KEY_ID
+AWS_LOCATION =AWS_LOCATION
 
