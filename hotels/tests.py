@@ -286,7 +286,7 @@ class test_HotelList(TestCase):
             id=9,
             hotel_id=8,
             site_id=1,
-            price=500000.0,
+            price=500000.000,
             is_free_cancel=True
         ),
         HotelSite(
@@ -386,9 +386,9 @@ class test_HotelList(TestCase):
         ImageUrl.objects.all().delete()
         Conformation.objects.all().delete()
 
-    @patch('hotels.views')
-    def test_success_hotel_list_all(self, mocked_requests):
+    def test_success_hotel_list_all(self):
         response = self.client.get('/hotels')
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {
             "message": [
@@ -652,8 +652,8 @@ class test_HotelList(TestCase):
                 "city_name": "하노이",
                 "rating": 4,
                 "address": "호텔 8 주소",
-                "latitude": 6.66233230000000,
-                "longitude": 8.46233230000000,
+                "latitude": 6.6623323,
+                "longitude": 8.4623323,
                 "hotel_image": [
                     {
                         "id": 14,
@@ -665,7 +665,7 @@ class test_HotelList(TestCase):
                 "hotel_sites": [
                     {
                         "id":9,
-                        "price": 500000.0,
+                        "price": 500000.000,
                         "is_free_cancel": True,
                         "site_id": 1,
                         "site_name": "노랑풍선",
