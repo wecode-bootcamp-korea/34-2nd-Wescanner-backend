@@ -40,58 +40,31 @@ class HotelListView(View):
     def get(self, request):
         check_in        = request.GET.get("check_in")
         check_out       = request.GET.get("check_out")
-        price_min       = request.GET.get('price_min',0)
-        price_max       = request.GET.get('price_max',1000000)
-        country_id      = request.GET.get('country_id')
-        hotel_id        = request.GET.get('hotel_id')
-        city_id         = request.GET.get('city_id')
-        rating          = request.GET.get('rating')
+        price_max       = int(request.GET.get('price_max', 1000000))
         is_free_cancel  = request.GET.get('is_free_cancel')
-        conformation_id = request.GET.get('conformation_id')
-        sort            = request.GET.get('sort','?')
+        sort            = request.GET.get('sort','id')
 
-        q = Q()
+        FILTER_SET = {
+            'country_id' : 'city__country_id',
+            'city_id'    : 'city_id',
+            'rating_ids' : 'rating_id__in',
+            'hotel_id'   : 'hotel_id',
+            'price_max'  : 'price__lte'
+        }
 
-        if country_id:
-            q &= Q(city__country_id = country_id)
-            
-        if city_id:
-            q &= Q(city_id = city_id)
+        ROOM_FILTER_SET = {
+            'price_max' : 'price__lte',
+            'is_free_cancel' : 'is_free_cancel'
+        }
+ 
+        SORT_SET = {
+            'random'     : '?',
+            'low_price'  : 'hotelsite__price',
+            'high_price' : '-hotelsite__price'
+        } 
 
-        if hotel_id:
-            q &= Q(id = hotel_id)
-
-        if conformation_id :
-            q &= Q(conformation_id=conformation_id)
-
-        if rating :
-            q &= Q(rating=rating)
-            
-        p = Q()
-
-        if price_min and price_max :
-           p &= Q(price__range = (price_min,price_max))
-        
-        if price_max == '100000' :
-            p &=  Q(price__lte=100000)
-        
-        elif price_max == '200000' : 
-            p &=  Q(price__lte=200000)
-        
-        elif price_max == '400000' : 
-            p &=  Q(price__lte=400000)
-        
-        elif price_max == '600000' : 
-            p &=  Q(price__lte=600000)
-        
-        elif price_max == '800000' : 
-            p &=  Q(price__lte=800000)
-
-        elif price_max == '1000000' : 
-            p &=  Q(price__lte=1000000)
-
-        if is_free_cancel :
-            p &= Q(is_free_cancel = is_free_cancel)
+        q = {FILTER_SET[key] : json.loads(value) for key, value in request.GET.items()}
+        p = {ROOM_FILTER_SET[key] : json.loads(value) for key, value in request.GET.items()}
         
         a = Q()
 
@@ -102,15 +75,7 @@ class HotelListView(View):
             a &= Q(reserved__check_in__range=(check_in, check_out))
             a &= Q(reserved__check_out__range=(check_in, check_out))
         
-        sort_set = {
-            'random'     : '?',
-            'low_price'  : 'hotelsite__price',
-            'high_price' : '-hotelsite__price'
-        } 
-        
-        order_field = sort_set.get(sort, 'id')
-
-        hotels = Hotel.objects.filter(q).exclude(a).order_by(order_field)
+        hotels = Hotel.objects.filter(**query).exclude(a).order_by(SORT_SET[sort])
         
         result = [
             {

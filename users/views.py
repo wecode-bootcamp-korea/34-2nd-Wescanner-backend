@@ -80,7 +80,30 @@ class KakaoLoginView(View):
         except KeyError:
             return JsonResponse({'message': 'KEY_ERROR'}, status=400)
 
-s3client = S3_Client(AWS_ACCESS_KEY_ID, AWS_SECRET_KEY, AWS_STORAGE_BUCKET_NAME, AWS_REGION)
+
+
+
+boto3_client = boto3.client(
+    's3',
+    aws_access_key_id     = aws_access_key_id,
+    aws_secret_access_key = aws_secret_access_key
+)
+
+naver3_client = boto3.client(
+    's3',
+    aws_access_key_id     = aws_access_key_id,
+    aws_secret_access_key = aws_secret_access_key
+)
+
+config = {
+    "bucket_name" : AWS_STORAGE_BUCKET_NAME,
+    "region"      : AWS_REGION
+}
+
+aws_file_uploader  =  AWSFileUploader(boto3_client, config)
+naver_file_uploader = NaverFileUploader(boto3_client, config)
+
+file_hanlder = FileHandler(naver_file_uploader)
 
 class ReviewView(View):
     @login_decorator
@@ -92,17 +115,18 @@ class ReviewView(View):
             contents         = request.POST['content']
             review_image     = request.FILES['review_image']
 
-            s3_controller = FileHandler(s3client)
+
+            review_image_url = file_hanlder.upload(directory = AWS_LOCATION, file = review_image)
 
             with transaction.atomic():
-                reviews = Review.objects.create(user_id   = user.id,
-                                                hotel_id  = hotel_id,
-                                                rating    = rating,
-                                                contents  = contents,
-                                                )
-            review_image_url = s3_controller.upload(directory = AWS_LOCATION, file = review_image)
+                reviews = Review.objects.create(
+                    user_id   = user.id,
+                    hotel_id  = hotel_id,
+                    rating    = rating,
+                    contents  = contents,
+                )
 
-            Review.objects.get(id = reviews.id).reviewimage_set.create(url = review_image_url)
+                Review.objects.get(id = reviews.id).reviewimage_set.create(url = review_image_url)
 
             return JsonResponse({'message': 'SUCCESS'}, status = 200)
 
@@ -115,13 +139,13 @@ class ReviewView(View):
     def delete(self, request, review_id):
         try:
             user = request.user
-            review_id = Review.objects.get(id=review_id)
-
-
-            s3_controller = FileHandler(s3client)
-            s3_controller.delete(bucket_name=AWS_STORAGE_BUCKET_NAME, file_name=review_id)
-
-            Review.objects.get(id=review_id, user_id=user.id).delete()
+        
+            with transaction.atomic():
+                # review images table에 객체 삭제
+                # review table 객체 삭제
+            
+            # s3 review image 삭제
+            review_image_url = file_hanlder.delete(file_name=review_id)
 
             return JsonResponse({'message': 'success'}, status=200)
 
