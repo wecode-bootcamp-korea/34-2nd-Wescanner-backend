@@ -2,6 +2,7 @@ import json
 import re
 import jwt
 import requests
+import boto3
 
 from django.db              import transaction
 from django.http            import JsonResponse
@@ -12,7 +13,7 @@ from wescanner.settings import SECRET_KEY,ALGORITHM
 from users.models       import User, Review
 
 from core.utils import KakaoAPI, login_decorator
-from core.s3    import S3_Client, FileHandler
+from core.s3    import AWSFileUploader, FileHandler
 
 from wescanner.settings  import (
     AWS_ACCESS_KEY_ID,
@@ -80,7 +81,21 @@ class KakaoLoginView(View):
         except KeyError:
             return JsonResponse({'message': 'KEY_ERROR'}, status=400)
 
-s3client = S3_Client(AWS_ACCESS_KEY_ID, AWS_SECRET_KEY, AWS_STORAGE_BUCKET_NAME, AWS_REGION)
+
+boto3_client = boto3.client(
+    's3',
+    aws_access_key_id     =  AWS_ACCESS_KEY_ID,
+    aws_secret_access_key = AWS_SECRET_KEY
+)
+
+config = {
+    "bucket_name" : AWS_STORAGE_BUCKET_NAME,
+    "region"      : AWS_REGION
+}
+
+aws_file_uploader  =  AWSFileUploader(boto3_client, config)
+
+file_handler = FileHandler(aws_file_uploader)
 
 class ReviewView(View):
     @login_decorator
@@ -92,15 +107,15 @@ class ReviewView(View):
             contents         = request.POST['content']
             review_image     = request.FILES['review_image']
 
-            s3_controller = FileHandler(s3client)
+            review_image_url = file_handler.upload(directory = AWS_LOCATION, file = review_image)
 
             with transaction.atomic():
-                reviews = Review.objects.create(user_id   = user.id,
-                                                hotel_id  = hotel_id,
-                                                rating    = rating,
-                                                contents  = contents,
-                                                )
-            review_image_url = s3_controller.upload(directory = AWS_LOCATION, file = review_image)
+                reviews = Review.objects.create(
+                    user_id   = user.id,
+                    hotel_id  = hotel_id,
+                    rating    = rating,
+                    contents  = contents,
+                )
 
             Review.objects.get(id = reviews.id).reviewimage_set.create(url = review_image_url)
 
@@ -112,20 +127,16 @@ class ReviewView(View):
             return JsonResponse({'message': 'TransactionManagementError'}, status = 400)
 
     @login_decorator
-    def delete(self, request, review_id):
+    def delete(self, request):
         try:
-            user = request.user
-            review_id = Review.objects.get(id=review_id)
+            review_id = request.GET.get('review_id')
+            file_url  = Review.objects.get(id = review_id).reviewimage_set.url
 
+            file_handler.delete(file_url)
 
-            s3_controller = FileHandler(s3client)
-            s3_controller.delete(bucket_name=AWS_STORAGE_BUCKET_NAME, file_name=review_id)
+            return JsonResponse(status = 204)
 
-            Review.objects.get(id=review_id, user_id=user.id).delete()
-
-            return JsonResponse({'message': 'success'}, status=200)
-
-        except Review.DoesNotExist():
-            return JsonResponse({'message': 'DoesNotExist'}, status=400) 
+        except Review.DoesNotExist:
+            return JsonResponse({'message' : 'Invalid Review'}, status = 400)
 
    
