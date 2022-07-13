@@ -124,8 +124,8 @@ class HotelListView(View):
                         "city_name"    : hotel.city.name,
                         "rating"       : hotel.rating,
                         "address"      : hotel.address,
-                        "latitude"     : hotel.latitude,
-                        "longitude"    : hotel.longitude,
+                        "latitude"     : str(hotel.latitude),
+                        "longitude"    : str(hotel.longitude),
                         "hotel_image" : [
                             {
                             "id"        : image_url.id,
@@ -138,7 +138,7 @@ class HotelListView(View):
                         "hotel_sites" : [
                             {
                                 "id"                  : hotelsite.id,
-                                "price"               : hotelsite.price,
+                                "price"               : str(hotelsite.price),
                                 "is_free_cancel"      : hotelsite.is_free_cancel,
                                 "site_id"             : hotelsite.site.id,
                                 "site_name"           : hotelsite.site.name,
