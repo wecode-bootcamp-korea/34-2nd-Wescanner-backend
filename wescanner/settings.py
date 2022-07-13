@@ -42,7 +42,7 @@ KAKAOAPI_KEY = KAKAOAPI_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*','3.90.252.248','3.90.252.248:8000']
 
 
 # Application definition
