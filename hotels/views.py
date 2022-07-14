@@ -45,9 +45,9 @@ class HotelListView(View):
         country_id      = request.GET.get('country_id')
         hotel_id        = request.GET.get('hotel_id')
         city_id         = request.GET.get('city_id')
-        rating          = request.GET.get('rating')
+        rating          = request.GET.getlist('rating')
         is_free_cancel  = request.GET.get('is_free_cancel')
-        conformation_id = request.GET.get('conformation_id')
+        conformation_id = request.GET.getlist('conformation_id')
         sort            = request.GET.get('sort','?')
 
         q = Q()
@@ -62,33 +62,17 @@ class HotelListView(View):
             q &= Q(id = hotel_id)
 
         if conformation_id :
-            q &= Q(conformation_id=conformation_id)
+            q &= Q(conformation_id__in=conformation_id)
 
         if rating :
-            q &= Q(rating=rating)
-            
+            q &= Q(rating__in=rating)
+
+         
+
         p = Q()
 
-        if price_min and price_max :
-           p &= Q(price__range = (price_min,price_max))
-        
-        if price_max == '100000' :
-            p &=  Q(price__lte=100000)
-        
-        elif price_max == '200000' : 
-            p &=  Q(price__lte=200000)
-        
-        elif price_max == '400000' : 
-            p &=  Q(price__lte=400000)
-        
-        elif price_max == '600000' : 
-            p &=  Q(price__lte=600000)
-        
-        elif price_max == '800000' : 
-            p &=  Q(price__lte=800000)
-
-        elif price_max == '1000000' : 
-            p &=  Q(price__lte=1000000)
+        if price_max :
+            p &=  Q(price__lte=price_max)
 
         if is_free_cancel :
             p &= Q(is_free_cancel = is_free_cancel)

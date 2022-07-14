@@ -16,8 +16,9 @@ class KakaoAPI:
         self.user_url     = "https://kapi.kakao.com/v2/user/me"
 
     def get_kakao_user_information(self):
-        headers = {"Authorization": f'bearer{self.access_token}'}
+        headers = {"Authorization": f'Bearer {self.access_token}'}
         response = requests.get(self.user_url, headers=headers, timeout=3).json()
+        # print(response.text)
 
         if response.get('code') == -1:
                 return JsonResponse({'message' : 'KAKAO_ERROR'}, status=400)

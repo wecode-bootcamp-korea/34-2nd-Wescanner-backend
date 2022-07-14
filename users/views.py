@@ -53,11 +53,12 @@ class KakaoLoginView(View):
     def get(self, request):
         try:
             access_token = request.headers['Authorization']
+            
             kakao_api    = KakaoAPI(access_token)
             response     = kakao_api.get_kakao_user_information()
-            
+        
             kakao_id = response['id']
-
+           
             user, is_created = User.objects.get_or_create(
                 kakao_id = kakao_id
             )

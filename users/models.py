@@ -4,7 +4,7 @@ from core.models import TimeStampModel
 
 # Create your models here.
 class User(TimeStampModel):   
-    email    = models.CharField(max_length = 45,unique = True)
+    email    = models.CharField(max_length = 45,unique = True, null=True)
     kakao_id = models.BigIntegerField(unique = True, null=True)
     class Meta:
         db_table = 'users'
